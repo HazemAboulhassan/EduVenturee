@@ -2,25 +2,21 @@ const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 
 const commentSchema = new schema({
-    groupName: {
+    Commentor: {
         type: String
     },
-    groupId: {
+    Content: {
         type: String
     },
-    groupDescription: {
-        type: String
+    date: {
+        type: Date
     },
-    users: [{
-        type: String
-    }],
+
     groupPosts: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Post"
     }],
-    groupModerators: [{
-        type: String
-    }]
+
 
 });
 
