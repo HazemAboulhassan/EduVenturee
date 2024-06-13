@@ -31,7 +31,7 @@ const addCommentToPost = async(postId, commentDetails) => {
     }
 };
 
-// Function to get a post with sorted comments by date
+//post sort by date des
 const getPostWithSortedComments = async(postId) => {
     try {
         const post = await Post.findById(postId).populate({
@@ -44,9 +44,20 @@ const getPostWithSortedComments = async(postId) => {
         throw error;
     }
 };
+//post sorted by type(asc)
+const getAllPostsSortedByType = async() => {
+    try {
+        const posts = await Post.find({}).sort({ type: 1 });
+        return posts;
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        throw error;
+    }
+};
 
 module.exports = {
     addPost,
     addCommentToPost,
-    getPostWithSortedComments
+    getPostWithSortedComments,
+    getAllPostsSortedByType
 };

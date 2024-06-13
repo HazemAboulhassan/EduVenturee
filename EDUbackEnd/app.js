@@ -5,6 +5,8 @@ const dateTime = require("simple-datetime-formater");
 const bodyParser = require("body-parser");
 const chatRouter = require("./route/chatroute");
 const loginRouter = require("./route/loginRoute");
+const groupRouter = require("./routes/groupRoute");
+
 
 //require the http module
 const http = require("http").Server(app);
@@ -17,9 +19,11 @@ const port = 5000;
 //bodyparser middleware
 app.use(bodyParser.json());
 
-//routes
+// Routes
 app.use("/chats", chatRouter);
 app.use("/login", loginRouter);
+app.use("/posts", postRouter);
+app.use("/groups", groupRouter);
 
 //set the express.static middleware
 app.use(express.static(__dirname + "/public"));
@@ -33,41 +37,41 @@ const connect = require("./dbconnect");
 
 //setup event listener
 socket.on("connection", socket => {
-  console.log("user connected");
+    console.log("user connected");
 
-  socket.on("disconnect", function() {
-    console.log("user disconnected");
-  });
-
-  //Someone is typing
-  socket.on("typing", data => {
-    socket.broadcast.emit("notifyTyping", {
-      user: data.user,
-      message: data.message
+    socket.on("disconnect", function() {
+        console.log("user disconnected");
     });
-  });
 
-  //when soemone stops typing
-  socket.on("stopTyping", () => {
-    socket.broadcast.emit("notifyStopTyping");
-  });
-
-  socket.on("chat message", function(msg) {
-    console.log("message: " + msg);
-
-    //broadcast message to everyone in port:5000 except yourself.
-    socket.broadcast.emit("received", { message: msg });
-
-    //save chat to the database
-    connect.then(db => {
-      console.log("connected correctly to the server");
-      let chatMessage = new Chat({ message: msg, sender: "Anonymous" });
-
-      chatMessage.save();
+    //Someone is typing
+    socket.on("typing", data => {
+        socket.broadcast.emit("notifyTyping", {
+            user: data.user,
+            message: data.message
+        });
     });
-  });
+
+    //when soemone stops typing
+    socket.on("stopTyping", () => {
+        socket.broadcast.emit("notifyStopTyping");
+    });
+
+    socket.on("chat message", function(msg) {
+        console.log("message: " + msg);
+
+        //broadcast message to everyone in port:5000 except yourself.
+        socket.broadcast.emit("received", { message: msg });
+
+        //save chat to the database
+        connect.then(db => {
+            console.log("connected correctly to the server");
+            let chatMessage = new Chat({ message: msg, sender: "Anonymous" });
+
+            chatMessage.save();
+        });
+    });
 });
 
 http.listen(port, () => {
-  console.log("Running on Port: " + port);
+    console.log("Running on Port: " + port);
 });

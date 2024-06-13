@@ -1,45 +1,63 @@
 const mongoose = require("mongoose");
-const News = require("../../models/News");
-const connect = require("../../dbconnect");
-const Comment = require("../../models/Comment");
+const Post = require("./../models/Post");
+const Comment = require("./../models/Comment");
 
-// Connect to MongoDB
-connect.then(() => {
-    console.log("Database connected, And the search rslut is:");
-    searchNews(); //ba3ml search awl lma a connect 3shan byhsal time out lma yb'a mfish user
-}).catch((err) => {
-    console.log("DB connection error in the news section");
-});
-//for testing.................
-// Create a new news document
-const newNews = new News({
-    image: "example.jpg1",
-    title: "Example News1",
-    content: "This is an example news article.1",
-    type: "general1",
-    date: new Date(),
-});
-//for testing.........................
-// Save the new news document to the database
-newNews.save()
-    .then((savedNews) => {
-        console.log("News saved successfully:", savedNews);
-    })
-    .catch((error) => {
-        console.error("Error saving news:", error);
-    })
-
-// Perform the search in news 
-async function searchNews() {
+// Function to add a new post
+const addPost = async(postDetails) => {
     try {
-        const news = await News.find({}).sort({ date: -1 });
-
-        console.log(news);
-
-
-        // Disconnect from MongoDB
-        mongoose.disconnect();
+        const newPost = new Post(postDetails);
+        await newPost.save();
+        return newPost;
     } catch (error) {
-        console.error(error);
+        console.error("Error adding post:", error);
+        throw error;
     }
-}
+};
+
+// Function to add a new comment to a post
+const addCommentToPost = async(postId, commentDetails) => {
+    try {
+        const newComment = new Comment(commentDetails);
+        await newComment.save();
+
+        const post = await Post.findById(postId);
+        post.comments.push(newComment._id);
+        await post.save();
+
+        return newComment;
+    } catch (error) {
+        console.error("Error adding comment:", error);
+        throw error;
+    }
+};
+
+//post sort by date des
+const getPostWithSortedComments = async(postId) => {
+    try {
+        const post = await Post.findById(postId).populate({
+            path: 'comments',
+            options: { sort: { date: 1 } } // Sort comments by date mn eloldest ll newest
+        }).exec();
+        return post;
+    } catch (error) {
+        console.error("Error fetching post with comments:", error);
+        throw error;
+    }
+};
+//post sorted by type(asc)
+const getAllPostsSortedByType = async() => {
+    try {
+        const posts = await Post.find({}).sort({ type: 1 });
+        return posts;
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        throw error;
+    }
+};
+
+module.exports = {
+    addPost,
+    addCommentToPost,
+    getPostWithSortedComments,
+    getAllPostsSortedByType
+};
